@@ -1,59 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Golden Bakery</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="./index-CS_Uzv2Q.js"></script>
-    <link rel="stylesheet" crossorigin href="./index-B3vW0b-V.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>Golden Bakery</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <preconnect href="https://fonts.googleapis.com">
+  <preconnect href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" crossorigin href="./index-B3vW0b-V.css">
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // 1. Initialize Safe Global Connection Context Variables
+    const supabaseUrl = "https://wxngmqbwnhreccxvhojv.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc2MiOiJzdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxN2Fub25mZmZzZSIImFub24iLCJpY00zQiQiOjE3ODMzMzYyMDMsImV4cCI6M2CcCI6MjA1ODkxMjIwM30.GvtHlA6pzR_Kpood7gccglsC4fFvH4gbJsiyQnIs82Q";
+    
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 2. Main Query Function to Query Database Tables and Hydrate Frontend Target Elements
+    async function loadMenu() {
+      try {
+        const { data: menuItems, error } = await supabaseClient
+          .from('menu_items')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching data from backend table instances:', error);
+          return;
+        }
+
+        // Dynamically locate target menu wrapper container grid target
+        const menuContainer = document.getElementById('menu-container');
+        if (!menuContainer) {
+          console.warn('Target menu layout selector wrapper "menu-container" container DOM reference not found on screen yet.');
+          return;
+        }
+        
+        menuContainer.innerHTML = ''; // Safely wipe old hardcoded layout placeholders
+
+        // Loop through all records retrieved from Supabase and print them out seamlessly
+        menuItems.forEach(item => {
+          const itemCard = `
+            <div class="menu-card">
+              <img src="${item.image_url}" alt="${item.name}" class="menu-img">
+              <h3>${item.name}</h3>
+              <p>${item.description}</p>
+              <span class="price">₹${item.price}</span>
+              <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})">Add to Cart</button>
+            </div>
+          `;
+          menuContainer.insertAdjacentHTML('beforeend', itemCard);
+        });
+      } catch (err) {
+        console.error('Unexpected structural thread blocking exception handler caught:', err);
+      }
+    }
+
+    // Bind event hooks to run dynamically on completion event cycle callbacks
+    document.addEventListener('DOMContentLoaded', loadMenu);
+  </script>
+
+  <script type="module" crossorigin src="./index-CS_Uzv2Q.js"></script>
+
+</body>
 </html>
-<!-- Load Supabase JS Library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Initialize Supabase Connection safely using Vercel injected keys -->
-<script>
-  const supabaseUrl = "https://wxngmqbwnhreccxvhojv.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc2MiOiJzdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxN2Fub25mZmZzZSIImFub24iLCJpY00zQiQiOjE3ODMzMzYyMDMsImV4cCI6M2CcCI6MjA1ODkxMjIwM30.GvtHlA6pzR_Kpood7gccglsC4fFvH4gbJsiyQnIs82Q";
-  
-  // Note: Using supabase.createClient here to correctly invoke the library!
-  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-</script>
-async function loadMenu() {
-  // 1. Fetch menu items from Supabase
-  const { data: menuItems, error } = await supabaseClient.from('menu_items').select('*');
-
-  if (error) {
-    console.error('Error fetching menu:', error);
-    return;
-  }
-
-  // 2. Find your menu container element (Make sure your HTML menu grid has id="menu-container")
-  const menuContainer = document.getElementById('menu-container');
-  if (!menuContainer) return;
-  
-  menuContainer.innerHTML = ''; // Clear existing static items
-
-  // 3. Loop through your live database items and render them
-  menuItems.forEach(item => {
-    const itemCard = `
-      <div class="menu-card">
-        <img src="${item.image_url}" alt="${item.name}" class="menu-img">
-        <h3>${item.name}</h3>
-        <p>${item.description}</p>
-        <span class="price">₹${item.price}</span>
-        <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})">Add to Cart</button>
-      </div>
-    `;
-    menuContainer.insertAdjacentHTML('beforeend', itemCard);
-  });
-}
-
-// Call the function automatically when the website loads
-document.addEventListener('DOMContentLoaded', loadMenu);
