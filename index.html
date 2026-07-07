@@ -15,3 +15,11 @@
     <div id="root"></div>
   </body>
 </html>
+<!-- Load Supabase JS Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Initialize Supabase Connection safely using Vercel injected keys -->
+<script>
+  const supabaseUrl = window.env?.NEXT_PUBLIC_SUPABASE_URL || "YOUR_ACTUAL_SUPABASE_URL_HERE";
+  const supabaseKey = window.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR_ACTUAL_SUPABASE_ANON_KEY_HERE";
+  const supabase = supabaseServer.createClient(supabaseUrl, supabaseKey);
+</script>
