@@ -1,94 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <title>Golden Bakery</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  
-  <preconnect href="https://fonts.googleapis.com">
-  <preconnect href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" crossorigin href="./index-B3vW0b-V.css">
-</head>
-<body>
-
-  <div id="root"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script>
-    const supabaseUrl = "https://wxngmqbwnhreccxvhojv.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc2MiOiJzdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxN2Fub25mZmZzZSIImFub24iLCJpY00zQiQiOjE3ODMzMzYyMDMsImV4cCI6M2CcCI6MjA1ODkxMjIwM30.GvtHlA6pzR_Kpood7gccglsC4fFvH4gbJsiyQnIs82Q";
-    
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-    // 1. Function to load menu items onto the screen
-    async function loadMenu() {
-      try {
-        const { data: menuItems, error } = await supabaseClient.from('menu_items').select('*');
-        if (error) return;
-
-        const menuContainer = document.getElementById('menu-container');
-        if (!menuContainer) return;
-        
-        menuContainer.innerHTML = '';
-
-        menuItems.forEach(item => {
-          const itemCard = `
-            <div class="menu-card">
-              <img src="${item.image_url}" alt="${item.name}" class="menu-img">
-              <h3>${item.name}</h3>
-              <p>${item.description}</p>
-              <span class="price">₹${item.price}</span>
-              <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})">Add to Cart</button>
-            </div>
-          `;
-          menuContainer.insertAdjacentHTML('beforeend', itemCard);
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // 2. Automated Checkout Interceptor (Saves orders to Supabase)
-    async function handleOnlineCheckout(event) {
-      // Look for a checkout or place order button click
-      const target = event.target;
-      if (target && (target.innerText.toLowerCase().includes('place order') || target.innerText.toLowerCase().includes('checkout'))) {
-        
-        // Grab values from input fields if they exist on the screen
-        const nameInput = document.querySelector('input[placeholder*="Name"]') || document.querySelector('input[type="text"]');
-        const phoneInput = document.querySelector('input[placeholder*="Phone"]') || document.querySelector('input[type="tel"]');
-        const totalElement = document.querySelector('.total-price') || document.querySelector('[class*="total"]');
-
-        const customerName = nameInput ? nameInput.value : "Online Customer";
-        const phone = phoneInput ? phoneInput.value : "No Phone Provided";
-        const totalAmount = totalElement ? parseFloat(totalElement.innerText.replace(/[^0-9.]/g, '')) : 0;
-
-        // Save order data directly into your Supabase orders table
-        try {
-          await supabaseClient.from('orders').insert([{
-            customer_name: customerName,
-            phone: phone,
-            total_amount: totalAmount,
-            payment_status: 'pending',
-            items: { description: "Order submitted via web portal checkout button click" }
-          }]);
-          console.log("Order securely tracked in Supabase database!");
-        } catch (dbError) {
-          console.error("Database tracking failed:", dbError);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Bakery - Navabpeta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bakeryDark: '#1a1816',
+                        bakeryGold: '#d4af37',
+                        bakeryGreen: '#25D366'
+                    }
+                }
+            }
         }
-      }
-    }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1a1816; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-bakeryDark text-white font-sans antialiased selection:bg-bakeryGold selection:text-black">
 
-    // Bind listeners safely
-    document.addEventListener('DOMContentLoaded', loadMenu);
-    document.addEventListener('click', handleOnlineCheckout);
-  </script>
+    <header class="sticky top-0 z-40 bg-bakeryDark/95 border-b border-zinc-800 backdrop-blur-md transition-all">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full border border-bakeryGold flex items-center justify-center bg-zinc-900">
+                    <i class="fa-solid fa-crown text-bakeryGold text-lg"></i>
+                </div>
+                <div>
+                    <span class="block font-serif text-xl tracking-wider font-bold text-bakeryGold">GOLDEN BAKERY</span>
+                    <span class="block text-[10px] tracking-widest text-zinc-400 uppercase -mt-1">Navabpeta</span>
+                </div>
+            </a>
 
-  <script type="module" crossorigin src="./index-CS_Uzv2Q.js"></script>
+            <div class="flex items-center gap-6">
+                <button onclick="toggleCart(true)" class="relative p-2 text-zinc-300 hover:text-bakeryGold transition-colors focus:outline-none">
+                    <i class="fa-solid fa-bag-shopping text-2xl"></i>
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center scale-0 transition-transform duration-300">0</span>
+                </button>
+                
+                <nav class="hidden md:flex items-center gap-6 text-sm font-medium tracking-wide text-zinc-300">
+                    <a href="#menu" class="hover:text-bakeryGold transition-colors">Fresh Menu</a>
+                    <a href="#story" class="hover:text-bakeryGold transition-colors">Our Story</a>
+                    <a href="#reviews" class="hover:text-bakeryGold transition-colors">Reviews</a>
+                    <a href="#contact" class="hover:text-bakeryGold transition-colors">Find Us</a>
+                </nav>
+            </div>
+        </div>
+    </header>
 
-</body>
-</html>
+    <section class="relative py-20 px-4 max-w-6xl mx-auto text-center border-b border-zinc-900">
+        <div class="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs tracking-wider text-bakeryGold uppercase">
+            <i class="fa-solid fa-sparkles"></i> Baked Fresh, Every Morning, for Navabpeta
+        </div>
+        <h1 class="font-serif text-4xl md:text-6xl font-bold tracking-tight mb-6 max-w-3xl mx-auto leading-tight">
+            Freshly Baked <span class="italic text-bakeryGold font-normal">Memories.</span>
+        </h1>
+        <p class="text-zinc-400 max-w-2xl mx-auto text-base md:text-lg mb-10 leading-relaxed">
+            Your trusted neighborhood bakery open every day. From morning bread to midnight celebrations, we bake the heart of Navabpeta.
+        </p>
+        
+        <div class="grid grid-cols-3 max-w-2xl mx-auto gap-4 mb-10 text-center bg-zinc-900/50 p-4 rounded-xl border border-zinc-800/60 backdrop-blur-sm">
+            <div>
+                <span class="block font-serif text-2xl font-bold text-bakeryGold">15+</span>
+                <span class="block text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Hours Open Daily</span>
+            </div>
+            <div class="border-x border-zinc-800">
+                <span class="block font-serif text-2xl font-bold text-bakeryGold">100%</span>
+                <span class="block text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Fresh Every Day</span>
+            </div>
+            <div>
+                <span class="block font-serif text-2xl font-bold text-bakeryGold">7</span>
+                <span class="block text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Days A Week</span>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="#menu" class="bg-bakeryGold hover:bg-yellow-600 text-black font-semibold px-8 py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-yellow-600/10 flex items-center gap-2">
+                Explore Menu <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+            <a href="https://wa.me/919948058392" target="_blank" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 font-semibold px-8 py-3.5 rounded-xl text-sm transition-all flex items-center gap-2">
+                <i class="fa-brands fa-whatsapp text-bakeryGreen text-base"></i> Direct Inquiry
+            </a>
+        </div>
+    </section>
+
+    <section id="menu" class="py-16 px-4 max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+            <h2 class="font-serif text-3xl font-bold text-bakeryGold mb-2">Baked with Love</h2>
+            <p class="text-zinc-400 text-sm max-w-md mx-auto">Explore our daily offerings, made fresh with the finest ingredients and neighborhood warmth.</p>
+        </div>
+
+        <div class="flex gap-2 overflow-x-auto pb-4 mb-8 custom-scrollbar scroll-smooth whitespace-nowrap snap-x">
+            <button onclick="filterCategory('all')" class="category-btn snap-start px-5 py-2 rounded-xl text-sm font-medium bg-bakeryGold text-black transition-all">All Items</button>
+            <button onclick="filterCategory('cakes')" class="category-btn snap-start px-5 py-2 rounded-xl text-sm font-medium bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all">🎂 Cakes</button>
+            <button onclick="filterCategory('puffs')" class="category-btn snap-start px-5 py-2 rounded-xl text-sm font-medium bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all">🥐 Puffs & Rolls</button>
+            <button onclick="filterCategory('fastfood')" class="category-btn snap-start px-5 py-2 rounded-xl text-sm font-medium bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all">🍕 Pizza & Burger</button>
+            <button onclick="filterCategory('beverages')" class="category-btn snap-start px-5 py-2 rounded-xl text-sm font-medium bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all">🥤 Drinks</button>
+            <button onclick="filterCategory('others')" class="category-btn snap-start px-5 py-2 rounded-xl text-sm font-medium bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all">🍬 Sweets & Snacks</button>
+        </div>
+
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+    </section>
+
+    <section id="story" class="bg-zinc-900/40 border-y border-zinc-900 py-16 px-4">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-10 items-center">
+            <div class="flex-1 space-y-4">
+                <span class="text-xs font-bold tracking-widest text-bakeryGold uppercase block">Our Story</span>
+                <h2 class="font-serif text-3xl font-bold leading-snug">The Heart of the Local Community</h2>
+                <p class="text-zinc-400 text-sm leading-relaxed">
+                    Golden Bakery is more than just a shop; it is a warm, welcoming home for everyone in Navabpeta. We wake up early to ensure the smell of fresh bread greets the morning.
+                </p>
+                <p class="text-zinc-400 text-sm leading-relaxed">
+                    From quick evening snacks to the cakes that celebrate your family's biggest milestones, we put care, tradition, and love into everything we bake. Not a corporate chain — we are your family bakery.
+                </p>
+            </div>
+            <div class="flex-1 w-full aspect-video md:aspect-square bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden relative flex items-center justify-center">
+                <i class="fa-solid fa-wheat-awn text-zinc-800 text-8xl absolute"></i>
+                <div class="relative z-10 p-6 text-center">
+                    <span class="block font-serif text-4xl font-bold text-bakeryGold mb-2">Est. Navabpeta</span>
+                    <span class="block text-zinc-500 uppercase tracking-widest text-xs">Telangana State</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="reviews" class="py-16 px-4 max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+            <span class="text-xs font-bold tracking-widest text-bakeryGold uppercase block mb-1">Loved by Locals</span>
+            <h2 class="font-serif text-3xl font-bold">What Customers Say</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div class="bg-zinc-900/60 border border-zinc-800/80 p-6 rounded-2xl relative">
+                <div class="flex text-amber-500 gap-1 text-xs mb-3">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-zinc-300 text-sm italic leading-relaxed mb-4">"Best bakery in Navabpeta! The puffs are always hot and fresh. I come here almost every evening."</p>
+                <span class="block font-medium text-xs text-bakeryGold">— Priya Reddy (Navabpeta)</span>
+            </div>
+            <div class="bg-zinc-900/60 border border-zinc-800/80 p-6 rounded-2xl relative">
+                <div class="flex text-amber-500 gap-1 text-xs mb-3">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-zinc-300 text-sm italic leading-relaxed mb-4">"Open late till 10 PM which is so convenient. Good quality, fresh bread every single day."</p>
+                <span class="block font-medium text-xs text-bakeryGold">— Ravi Teja (Navabpeta)</span>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact" class="bg-zinc-950 border-t border-zinc-900 pt-14 pb-8 px-4 text-sm text-zinc-400">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+            <div>
+                <span class="block font-serif text-lg font-bold text-bakeryGold mb-4">New Golden Bakery</span>
+                <p class="leading-relaxed mb-4 text-zinc-400">Bringing sweet smiles and hot crispy delights to your neighborhood daily.</p>
+                <div class="flex gap-4 text-base">
+                    <a href="https://wa.me/919948058392" target="_blank" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center hover:bg-bakeryGreen hover:text-black transition-all"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center hover:bg-bakeryGold hover:text-black transition-all"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+            <div>
+                <span class="block text-zinc-200 font-semibold uppercase tracking-wider text-xs mb-4">Store Hours & Info</span>
+                <ul class="space-y-2.5 text-zinc-400">
+                    <li class="flex items-center gap-3"><i class="fa-regular fa-clock text-bakeryGold"></i> 7:00 AM – 10:00 PM (Daily)</li>
+                    <li class="flex items-center gap-3"><i class="fa-solid fa-phone text-bakeryGold"></i> +91 99480 58392</li>
+                    <li class="flex items-start gap-3"><i class="fa-solid fa-location-dot text-bakeryGold mt-0.5"></i> <span>Navabpeta, Telangana 509340</span></li>
+                </ul>
+            </div>
+            <div class="w-full h-44 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden relative flex items-center justify-center text-center p-4">
+                <div class="z-10">
+                    <i class="fa-solid fa-map-location-dot text-zinc-700 text-3xl mb-2"></i>
+                    <span class="block text-zinc-300 font-medium text-xs mb-1">Navabpeta Map View</span>
+                    <a href="https://maps.google.com" target="_blank" class="text-[11px] text-bakeryGold underline">Open in Google Maps</a>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto border-t border-zinc-900/60 pt-6 text-center text-xs text-zinc-600">
+            &copy; 2026 New Golden Bakery. All Rights Reserved. Crafted with care.
+        </div>
+    </footer>
+
+    <div id="cart-drawer" class="fixed inset-0 z-50 pointer-events-none transition-all duration-300">
+        <div id="cart-backdrop" onclick="toggleCart(false)" class="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        
+        <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-zinc-950 border-l border-zinc-800 shadow-2xl flex flex-col translate-x-full transition-transform duration-300 pointer-events-auto">
+            <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/40">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-basket-shopping text-bakeryGold"></i>
+                    <h3 class="font-bold text-base tracking-wide">Your Summary Basket</h3>
+                </div>
+                <button onclick="toggleCart(false)" class="p-2 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                </div>
+
+            <div id="cart-summary-block" class="p-4 border-t border-zinc-800 bg-zinc-900/30 space-y-4 hidden">
+                <div class="space-y-2 text-xs text-zinc-400">
+                    <div class="flex justify-between"><span>Subtotal Item Value</span><span id="bill-subtotal">₹0</span></div>
+                    <div class="flex justify-between text-bakeryGreen"><span>Delivery & Handling Fees</span><span>FREE 🥳</span></div>
+                    <div class="flex justify-between text-bakeryGreen"><span>Instant UPI Core Commission</span><span>0% ✅</span></div>
+                    <div class="flex justify-between text-sm font-bold text-white pt-2 border-t border-zinc-850">
+                        <span>Grand Total Bill</span><span id="bill-grand-total" class="text-bakeryGold text-base">₹0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-zinc-800">
+                    <label class="block text-[11px] tracking-wide text-zinc-400 uppercase font-medium">Delivery Information</label>
+                    <input type="text" id="cust-name" placeholder="Enter Your Full Name" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-bakeryGold transition-colors">
+                    <input type="tel" id="cust-phone" placeholder="Enter WhatsApp Contact Number" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-bakeryGold transition-colors">
+                </div>
+
+                <button onclick="executeOrderFlow()" class="w-full bg-bakeryGold hover:bg-yellow-600 text-black font-bold p-3.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-600/5">
+                    <i class="fa-solid fa-wallet"></i> Pay & Verify Order via UPI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MENU DATA BLOCK
+        const menuProducts = [
+            { id: 'cake_normal', name: 'Normal Cake', desc: 'Classic & Simple recipe mix', priceHalf: 250, priceFull: 450, category: 'cakes', isCake: true },
+            { id: 'cake_pine', name: 'Pineapple Cake', desc: 'Tropical & Creamy layered design', priceHalf: 350, priceFull: 650, category: 'cakes', isCake: true },
+            { id: 'cake_bf', name: 'Black Forest Cake', desc: 'Dark Chocolate frosting & sweet Cherries', priceHalf: 400, priceFull: 750, category: 'cakes', isCake: true },
+            { id: 'cake_straw', name: 'Strawberry Cake', desc: 'Fresh Berry syrup layers & glaze', priceHalf: 400, priceFull: 750, category: 'cakes', isCake: true },
+            { id: 'cake_choc', name: 'Chocolate Cake', desc: 'Rich Truffle Ganache coating', priceHalf: 450, priceFull: 850, category: 'cakes', isCake: true },
+            
+            { id: 'puff_veg', name: 'Veg Puff', desc: 'Flaky pastry crisp shell, fresh seasoned veggie filling', price: 12, category: 'puffs' },
+            { id: 'puff_chk', name: 'Chicken Puff', desc: 'Spiced chicken chunks tucked in buttery pastry layers', price: 20, category: 'puffs' },
+            { id: 'roll_chk', name: 'Chicken Roll', desc: 'Rolled golden pastry wrap loaded with juicy shredded chicken', price: 30, category: 'puffs' },
+            
+            { id: 'piz_base', name: 'Fresh Pizza Mix', desc: 'Mouthwatering customized toppings', price: 80, category: 'fastfood', label: 'From ₹80' },
+            { id: 'burg_base', name: 'Classic Burger', desc: 'Toasted buns, fresh crisp layers', price: 60, category: 'fastfood', label: 'From ₹60' },
+            { id: 'sweet_base', name: 'Traditional Indian Sweets', desc: 'Premium assorted recipe selections', price: 200, category: 'others', label: 'From ₹200 / KG' },
+            { id: 'bread_base', name: 'Artisan Sourdough / Bread', desc: 'Baked healthy daily right from ovens', price: 25, category: 'others', label: 'From ₹25' },
+            { id: 'snack_base', name: 'Savory Snacks', desc: 'Crunchy salted treats ready for pack', price: 10, category: 'others', label: 'From ₹10' },
+            { id: 'supplies_base', name: 'Birthday Event Supplies', desc: 'Caps, designer candles, celebration multi-sprays', price: 50, category: 'others', label: 'From ₹50' },
+
+            { id: 'bev_soda', name: 'Club Soda (200ml)', desc: 'Crisp refreshing bubble fizz', price: 10, category: 'beverages' },
+            { id: 'bev_sprite', name: 'Sprite (300ml)', desc: 'Chilled lime lemon clear drink soda', price: 20, category: 'beverages' },
+            { id: 'bev_maaza', name: 'Maaza (200ml)', desc: 'Sweet juicy real mango nectar pulp drink', price: 20, category: 'beverages' },
+            { id: 'bev_tu', name: 'Thums Up (300ml)', desc: 'Strong high-fizz indian cola drink taste', price: 20, category: 'beverages' },
+            { id: 'bev_po', name: 'Pulpy Orange (400ml)', desc: 'Orange citrus juice mix containing fresh fruit bits', price: 30, category: 'beverages' },
+            { id: 'bev_monster', name: 'Monster Energy (250ml)', desc: 'Premium taurine alert high caffeine stack energy can', price: 125, category: 'beverages' },
+            { id: 'bev_rb', name: 'Red Bull (250ml)', desc: 'Vitalizes body and mind premium energy serving', price: 150, category: 'beverages' }
+        ];
+
+        let stateCart = [];
+
+        // LOAD RENDER SYSTEM CONTENT GRID
+        function renderItems(filter = 'all') {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            
+            const filtered = filter === 'all' ? menuPro
